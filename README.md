@@ -1,2 +1,5 @@
 # BTBluetooth
-Android蓝牙开发，连接BT无线地面气象诸元设备，获取实时数据
+1、Android蓝牙开发，连接BT无线地面气象诸元设备，获取实时数据
+2、SearchServer开启线程子线程获取数据、写数据，Handler反馈到界面显示数据
+3、BroadcastReceiver广播接收器，取得搜索到的蓝牙
+4、通过BluetoothSocket获取连接、取得设备的蓝牙获取到的数据
