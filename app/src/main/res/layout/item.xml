@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_marginLeft="30dp"
+    android:layout_marginRight="30dp"
+    android:layout_marginTop="15dp"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:textSize="18sp"
+        android:id="@+id/blueName"
+        android:text="名字"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <!--<TextView-->
+        <!--android:id="@+id/num"-->
+        <!--android:layout_alignParentRight="true"-->
+        <!--android:text="num"-->
+        <!--android:layout_marginTop="15dp"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content" />-->
+
+    <TextView
+        android:layout_below="@id/blueName"
+        android:layout_marginTop="5dp"
+        android:id="@+id/macid"
+        android:text="macid"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <View
+        android:layout_marginTop="5dp"
+        android:layout_below="@id/macid"
+        android:background="#D7D7DD"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
+</RelativeLayout>
