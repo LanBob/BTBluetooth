@@ -29,6 +29,7 @@ import com.lusr.app.commonAdapter.Com_Adapter;
 import com.lusr.app.commonAdapter.Com_ViewHolder;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -63,7 +64,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     SearchServer searchServer;
 
-    Handler handler;
+//    static Handler handler;
     BluetoothAdapter bluetoothAdapter;
     BluetoothDevice cchDev;
     private String devName1 = "CCHX001";
@@ -76,27 +77,23 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private String devName = "";
     int[][] a = new int[11][11];
 
+    /**
+     * Instances of static inner classes do not hold an implicit
+     * reference to their outer class.
+     */
+    private static class MyHandler extends Handler {
+        private final WeakReference<MainActivity> mActivity;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        ActionBar actionBar = getActionBar();
-        
+        public MyHandler(MainActivity activity) {
+            mActivity = new WeakReference<MainActivity>(activity);
+        }
 
-        canUseable = false;
+        @Override
+        public void handleMessage(Message msg) {
+            Bundle mData;
 
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        blueBeanList = new ArrayList<>();
-        dataBeanList = new ArrayList<>();
-
-        initView();
-
-        handler = new Handler() {
-            private Bundle mData;
-
-            @Override
-            public void handleMessage(Message msg) {
+            MainActivity activity = mActivity.get();
+            if (activity != null) {
                 super.handleMessage(msg);
 
                 mData = msg.getData();
@@ -109,35 +106,101 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     str = new String(data, "utf-8");
 
                     DataBean dataBean = FileStringHelper.getSubShow(str);
-                    basicV.setText("电压： " + dataBean.getV() + "      " + "设备名称：" + devName);
+                    activity.basicV.setText("电压： " + dataBean.getV() + "      " + "设备名称：" + activity.devName);
 
-                    int len = dataBeanList.size();
+                    int len = activity.dataBeanList.size();
 
-                    if(len == 0){
-                        dataBeanList.add(dataBean);
-                    }else {
-                        dataBeanList.add(dataBean);
-                        for(int i = len-1; i>=0;--i){
-                            dataBeanList.set(i+1,dataBeanList.get(i));
+                    if (len == 0) {
+                        activity.dataBeanList.add(dataBean);
+                    } else {
+                        activity.dataBeanList.add(dataBean);
+                        for (int i = len - 1; i >= 0; --i) {
+                            activity.dataBeanList.set(i + 1, activity.dataBeanList.get(i));
                         }
-                        dataBeanList.set(0,dataBean);
+                        activity.dataBeanList.set(0, dataBean);
                     }
 
-                    int newLen = dataBeanList.size();
+                    int newLen = activity.dataBeanList.size();
 //                    显示数据条数设置：15
-                    for(int i = newLen-1;i>15;--i){
-                        dataBeanList.remove(i);
+                    for (int i = newLen - 1; i > 15; --i) {
+                        activity.dataBeanList.remove(i);
                     }
 
-                    dataAdapter.notifyDataSetChanged();
+                    activity.dataAdapter.notifyDataSetChanged();
 
 
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 }
-
             }
-        };
+        }
+    }
+
+    private final MyHandler mHandler = new MyHandler(this);
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        ActionBar actionBar = getActionBar();
+
+
+        canUseable = false;
+
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        blueBeanList = new ArrayList<>();
+        dataBeanList = new ArrayList<>();
+
+        initView();
+
+        //This Handler class should be static or leaks might occur (anonymous android.os.Handler)
+//        handler = new Handler() {
+//            private Bundle mData;
+//
+//            @Override
+//            public void handleMessage(Message msg) {
+//                super.handleMessage(msg);
+//
+//                mData = msg.getData();
+//                byte[] data = mData.getByteArray("data");
+//                String str = "";
+//
+////              数据处理
+//                try {
+////                    这个是源数据，没有进行过处理
+//                    str = new String(data, "utf-8");
+//
+//                    DataBean dataBean = FileStringHelper.getSubShow(str);
+//                    basicV.setText("电压： " + dataBean.getV() + "      " + "设备名称：" + devName);
+//
+//                    int len = dataBeanList.size();
+//
+//                    if(len == 0){
+//                        dataBeanList.add(dataBean);
+//                    }else {
+//                        dataBeanList.add(dataBean);
+//                        for(int i = len-1; i>=0;--i){
+//                            dataBeanList.set(i+1,dataBeanList.get(i));
+//                        }
+//                        dataBeanList.set(0,dataBean);
+//                    }
+//
+//                    int newLen = dataBeanList.size();
+////                    显示数据条数设置：15
+//                    for(int i = newLen-1;i>15;--i){
+//                        dataBeanList.remove(i);
+//                    }
+//
+//                    dataAdapter.notifyDataSetChanged();
+//
+//
+//                } catch (UnsupportedEncodingException e) {
+//                    e.printStackTrace();
+//                }
+//
+//            }
+//        };
 
         //        注册
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
@@ -205,7 +268,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                                     basicData.setVisibility(View.VISIBLE);
                                     dataList.setVisibility(View.VISIBLE);
 
-                                    searchServer = new SearchServer(MainActivity.this, bluetoothAdapter, blueBean.getBluetoothDevice(), handler, fileName);
+                                    searchServer = new SearchServer(MainActivity.this, bluetoothAdapter, blueBean.getBluetoothDevice(), mHandler, fileName);
                                     searchServer.start();
                                 }
                             } else {
@@ -225,13 +288,13 @@ public class MainActivity extends Activity implements View.OnClickListener {
             public void convert(Com_ViewHolder holder, DataBean dataBean) {
                 if (dataBean != null) {
                     if (dataBean.getTemperature() != null) {
-                        holder.setText(R.id.time, dataBean.getTime()+"    ");
-                        holder.setText(R.id.temperature, dataBean.getTemperature()+"      ");
-                        holder.setText(R.id.humidity, dataBean.getHumidity()+"     ");
-                        holder.setText(R.id.airPressure, dataBean.getAirPressure()+"     ");
-                        holder.setText(R.id.windDirection, dataBean.getWindDirection()+"     ");
-                        holder.setText(R.id.windSpeed, dataBean.getWindSpeed()+"     ");
-                        holder.setText(R.id.windDirection2, dataBean.getWindDirection2()+"     ");
+                        holder.setText(R.id.time, dataBean.getTime() + "    ");
+                        holder.setText(R.id.temperature, dataBean.getTemperature() + "      ");
+                        holder.setText(R.id.humidity, dataBean.getHumidity() + "     ");
+                        holder.setText(R.id.airPressure, dataBean.getAirPressure() + "     ");
+                        holder.setText(R.id.windDirection, dataBean.getWindDirection() + "     ");
+                        holder.setText(R.id.windSpeed, dataBean.getWindSpeed() + "     ");
+                        holder.setText(R.id.windDirection2, dataBean.getWindDirection2() + "     ");
                         holder.setText(R.id.windSpeed2, dataBean.getWindSpeed2());
                     }
                 }
