@@ -31,7 +31,7 @@ public Handler(Callback callback, boolean async) {
      }  
  }
  ``` 
----
+
  
 
 解释：  
@@ -40,11 +40,10 @@ public Handler(Callback callback, boolean async) {
 的引用。这个引用会一直存在直到这个消息被处理，所以垃圾回收机制就没法回收这个activity，内存泄露就  
 发生了。  
 >
+
+
+大概说一下（个人理解），若是匿名内部类引用链为：handler持有activity的引用，activity持有Looper的引用，Looper持有MessageQueue的引用，MessageQueue中的Message持有Handler引用  
 ---
 
-大概说一下（个人理解），若是匿名内部类引用链为：handler持有activity的引用，activity持有Looper的引用，  
-Looper持有MessageQueue的引用，MessageQueue中的Message持有Handler引用  
----
-
-###最终建议：使用静态内部类并且在内部类中持有外部类的弱引用，因为弱引用不会导致无法回收的问题。
+##最终建议：使用静态内部类并且在内部类中持有外部类的弱引用，因为弱引用不会导致无法回收的问题。
 
